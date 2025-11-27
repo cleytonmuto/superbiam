@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/config';
@@ -9,6 +9,7 @@ export default function Login() {
   const [user, setUser] = useState(auth.currentUser);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isShowingErrorRef = useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,7 +32,9 @@ export default function Login() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
-      if (currentUser) {
+      // Only navigate if user exists and we're not showing an error
+      // This prevents navigation when we sign out to show an error
+      if (currentUser && !isShowingErrorRef.current) {
         navigate('/');
       }
     });
@@ -41,6 +44,7 @@ export default function Login() {
 
   const handleGoogleSignIn = async () => {
     setErrorMessage(null);
+    isShowingErrorRef.current = false;
     try {
       // Try popup first (better UX)
       const result = await signInWithPopup(auth, googleProvider);
@@ -77,6 +81,7 @@ export default function Login() {
 
   const handleGoogleSignUp = async () => {
     setErrorMessage(null);
+    isShowingErrorRef.current = false;
     try {
       // Try popup first (better UX)
       const result = await signInWithPopup(auth, googleProvider);
@@ -86,19 +91,29 @@ export default function Login() {
       const existingProfile = await getUserProfile(user.uid);
       
       if (existingProfile) {
-        // User already has an account, sign them out and show error
-        await signOut(auth);
+        // User already has an account, set error message and flag first
+        isShowingErrorRef.current = true;
         setErrorMessage('This account is already registered. Please use "Sign in with Google" instead.');
+        
+        // Use setTimeout to ensure error message state is set before signOut triggers re-render
+        setTimeout(async () => {
+          await signOut(auth);
+          // Reset the flag after a moment to allow future sign-ins
+          setTimeout(() => {
+            isShowingErrorRef.current = false;
+          }, 500);
+        }, 50);
         return;
       }
       
       // Create new profile as "reader"
       await createUserProfile(user, 'reader');
+      isShowingErrorRef.current = false;
       
       // Navigation will happen automatically via onAuthStateChanged
     } catch (error: any) {
       console.error('Error signing up:', error);
-      setErrorMessage(null); // Clear any previous error
+      isShowingErrorRef.current = false;
       
       // If popup is blocked, try redirect
       if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
@@ -162,7 +177,7 @@ export default function Login() {
           </button>
         </div>
         {errorMessage && (
-          <div className="error-message">
+          <div className="error-message" role="alert">
             {errorMessage}
           </div>
         )}

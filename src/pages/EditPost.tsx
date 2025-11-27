@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { useNavigate, useParams } from 'react-router-dom';
+import { doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { isEditor } from '../utils/userProfile';
 import './CreatePost.css';
 
-export default function CreatePost() {
+export default function EditPost() {
+  const { id } = useParams<{ id: string }>();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingPost, setLoadingPost] = useState(true);
   const [user, setUser] = useState(auth.currentUser);
   const [isUserEditor, setIsUserEditor] = useState(false);
   const [checkingPermission, setCheckingPermission] = useState(true);
@@ -26,7 +28,7 @@ export default function CreatePost() {
         setCheckingPermission(false);
         
         if (!editorStatus) {
-          alert('You do not have permission to create posts. Only editors can create posts.');
+          alert('You do not have permission to edit posts. Only editors can edit posts.');
           navigate('/');
         }
       }
@@ -34,16 +36,49 @@ export default function CreatePost() {
     return () => unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchPost = async () => {
+      if (!id) {
+        navigate('/');
+        return;
+      }
+
+      try {
+        const postRef = doc(db, 'posts', id);
+        const postSnap = await getDoc(postRef);
+        
+        if (postSnap.exists()) {
+          const data = postSnap.data();
+          setTitle(data.title);
+          setContent(data.content);
+        } else {
+          alert('Post not found.');
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        alert('Failed to load post. Please try again.');
+        navigate('/');
+      } finally {
+        setLoadingPost(false);
+      }
+    };
+
+    if (isUserEditor && !checkingPermission) {
+      fetchPost();
+    }
+  }, [id, isUserEditor, checkingPermission, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) {
-      alert('You must be logged in to create a post');
+      alert('You must be logged in to edit a post');
       return;
     }
 
     if (!isUserEditor) {
-      alert('You do not have permission to create posts. Only editors can create posts.');
+      alert('You do not have permission to edit posts. Only editors can edit posts.');
       return;
     }
 
@@ -52,32 +87,31 @@ export default function CreatePost() {
       return;
     }
 
+    if (!id) {
+      alert('Post ID is missing.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await addDoc(collection(db, 'posts'), {
+      const postRef = doc(db, 'posts', id);
+      await updateDoc(postRef, {
         title: title.trim(),
         content: content.trim(),
-        createdAt: Timestamp.now(),
-        authorId: user.uid,
-        authorName: user.displayName || 'Anonymous',
-        authorEmail: user.email || '',
+        updatedAt: Timestamp.now(),
       });
-
-      // Reset form
-      setTitle('');
-      setContent('');
       
       // Navigate to home
       navigate('/');
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Failed to create post. Please try again.');
+      console.error('Error updating post:', error);
+      alert('Failed to update post. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user || checkingPermission) {
+  if (!user || checkingPermission || loadingPost) {
     return <div className="create-post-container">Loading...</div>;
   }
 
@@ -86,7 +120,7 @@ export default function CreatePost() {
       <div className="create-post-container">
         <div className="create-post-card">
           <h2>Access Denied</h2>
-          <p>You do not have permission to create posts. Only users with editor profile can create posts.</p>
+          <p>You do not have permission to edit posts. Only users with editor profile can edit posts.</p>
           <button onClick={() => navigate('/')} className="btn btn-primary">
             Go to Home
           </button>
@@ -98,7 +132,7 @@ export default function CreatePost() {
   return (
     <div className="create-post-container">
       <div className="create-post-card">
-        <h2>Create New Post</h2>
+        <h2>Edit Post</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="title">Title</label>
@@ -142,7 +176,7 @@ export default function CreatePost() {
               className="btn btn-primary" 
               disabled={loading}
             >
-              {loading ? 'Publishing...' : 'Publish Post'}
+              {loading ? 'Updating...' : 'Update Post'}
             </button>
             <button 
               type="button" 

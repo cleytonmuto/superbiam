@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { Post } from '../types';
@@ -27,37 +27,48 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const postsRef = collection(db, 'posts');
-        const q = query(postsRef, orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        
-        const postsData: Post[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          postsData.push({
-            id: doc.id,
-            title: data.title,
-            content: data.content,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            authorId: data.authorId,
-            authorName: data.authorName,
-            authorEmail: data.authorEmail,
-          });
+  const fetchPosts = async () => {
+    try {
+      const postsRef = collection(db, 'posts');
+      const q = query(postsRef, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const postsData: Post[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        postsData.push({
+          id: doc.id,
+          title: data.title,
+          content: data.content,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          authorId: data.authorId,
+          authorName: data.authorName,
+          authorEmail: data.authorEmail,
         });
-        
-        setPosts(postsData);
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      });
+      
+      setPosts(postsData);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchPosts();
   }, []);
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await deleteDoc(doc(db, 'posts', postId));
+      // Refresh posts list
+      await fetchPosts();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -104,7 +115,12 @@ export default function Home() {
         ) : (
           <div className="posts-list">
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard 
+                key={post.id} 
+                post={post} 
+                isEditor={isUserEditor}
+                onDelete={handleDeletePost}
+              />
             ))}
           </div>
         )}
