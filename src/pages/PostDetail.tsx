@@ -6,6 +6,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { Post } from '../types';
 import { isEditor } from '../utils/userProfile';
 import ConfirmDialog from '../components/ConfirmDialog';
+import ShareButtons from '../components/ShareButtons';
 import './PostDetail.css';
 
 export default function PostDetail() {
@@ -167,6 +168,7 @@ export default function PostDetail() {
               className="post-detail-content" 
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
+            <ShareButtons postId={post.id} postTitle={post.title} />
             <div className="post-detail-footer">
               <Link to="/" className="back-to-home-link">← Back to Home</Link>
             </div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Post } from '../types';
 import { truncateHTML } from '../utils/htmlTruncate';
 import ConfirmDialog from './ConfirmDialog';
+import ShareButtons from './ShareButtons';
 
 interface PostCardProps {
   post: Post;
@@ -79,6 +80,7 @@ export default function PostCard({ post, isEditor, onDelete }: PostCardProps) {
             </Link>
           </div>
         )}
+        <ShareButtons postId={post.id} postTitle={post.title} />
       </article>
 
       <ConfirmDialog
