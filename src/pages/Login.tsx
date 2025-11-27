@@ -59,12 +59,13 @@ export default function Login() {
       // Navigation will happen automatically via onAuthStateChanged
     } catch (error: any) {
       console.error('Error signing in:', error);
-      setErrorMessage(null); // Clear any previous error
       
       // If popup is blocked, try redirect
       if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
         try {
           await signInWithRedirect(auth, googleProvider);
+          // If redirect succeeds, navigation will happen via getRedirectResult
+          return;
         } catch (redirectError) {
           console.error('Redirect sign-in error:', redirectError);
           setErrorMessage('Failed to sign in. Please check your browser settings and try again.');

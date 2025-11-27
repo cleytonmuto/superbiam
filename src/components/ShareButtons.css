@@ -74,14 +74,54 @@
   box-shadow: 0 2px 8px rgba(188, 24, 136, 0.3);
 }
 
-@media (max-width: 600px) {
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
   .share-buttons {
-    flex-direction: row;
-    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
   }
 
   .share-label {
+    font-size: 0.85rem;
+  }
+
+  .share-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0.5rem;
+  }
+
+  .share-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .share-buttons {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .share-label {
+    font-size: 0.8rem;
+    margin-right: 0;
     margin-bottom: 0;
+  }
+
+  .share-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0.5rem;
+  }
+
+  .share-btn svg {
+    width: 18px;
+    height: 18px;
   }
 }
 

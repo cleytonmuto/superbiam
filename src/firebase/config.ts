@@ -13,8 +13,18 @@ const firebaseConfig = {
 };
 
 // Validate that all required environment variables are present
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  throw new Error('Missing Firebase configuration. Please check your .env file.');
+const missingVars: string[] = [];
+if (!firebaseConfig.apiKey) missingVars.push('VITE_FIREBASE_API_KEY');
+if (!firebaseConfig.authDomain) missingVars.push('VITE_FIREBASE_AUTH_DOMAIN');
+if (!firebaseConfig.projectId) missingVars.push('VITE_FIREBASE_PROJECT_ID');
+if (!firebaseConfig.storageBucket) missingVars.push('VITE_FIREBASE_STORAGE_BUCKET');
+if (!firebaseConfig.messagingSenderId) missingVars.push('VITE_FIREBASE_MESSAGING_SENDER_ID');
+if (!firebaseConfig.appId) missingVars.push('VITE_FIREBASE_APP_ID');
+
+if (missingVars.length > 0) {
+  throw new Error(
+    `Missing Firebase configuration. Please create a .env file with the following variables:\n${missingVars.join('\n')}\n\nSee README.md for setup instructions.`
+  );
 }
 
 // Initialize Firebase
