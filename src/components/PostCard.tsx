@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Post } from '../types';
+import type { Post } from '../types';
 import { truncateHTML } from '../utils/htmlTruncate';
 import ConfirmDialog from './ConfirmDialog';
 import ShareButtons from './ShareButtons';

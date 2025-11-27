@@ -1,7 +1,7 @@
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { UserProfile } from '../types';
-import { User as FirebaseUser } from 'firebase/auth';
+import type { UserProfile } from '../types';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 /**
  * Get user profile from Firestore

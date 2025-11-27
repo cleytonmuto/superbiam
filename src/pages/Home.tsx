@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { Post } from '../types';
+import type { Post } from '../types';
 import { isEditor } from '../utils/userProfile';
 import PostCard from '../components/PostCard';
 import './Home.css';

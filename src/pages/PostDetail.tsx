@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { Post } from '../types';
+import type { Post } from '../types';
 import { isEditor } from '../utils/userProfile';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ShareButtons from '../components/ShareButtons';
