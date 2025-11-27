@@ -1,73 +1,121 @@
-# React + TypeScript + Vite
+# Daily Blog Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern blog platform built with React, TypeScript, and Firebase. The owner can post daily messages in HTML format, and visitors can view all recent posts.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 📝 View all blog posts in reverse chronological order (newest first)
+- 🔐 OAuth2 authentication with Google (Firebase Auth)
+- ✍️ Create and publish posts with HTML content
+- 🎨 Modern, responsive UI with gradient design
+- 💾 Persistent storage using Firebase Firestore
 
-## React Compiler
+## Prerequisites
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+- Node.js (v18 or higher)
+- npm or yarn
+- A Firebase project with Firestore and Authentication enabled
 
-## Expanding the ESLint configuration
+## Setup Instructions
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 1. Install Dependencies
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Firebase Configuration
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**📖 For detailed setup instructions, see [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)**
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Create a `.env` file in the root directory with your Firebase credentials:
+   ```env
+   VITE_FIREBASE_API_KEY=your_api_key_here
+   VITE_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your-project-id
+   VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   VITE_FIREBASE_APP_ID=your_app_id
+   ```
+
+2. Get your Firebase credentials from Firebase Console:
+   - Go to Project Settings > Your apps > Web app
+   - Copy the configuration values
+
+3. Enable **Firestore Database** and **Google Authentication** (see FIREBASE_SETUP.md for detailed steps)
+
+**Important:** The app now reads configuration from environment variables. Make sure your `.env` file is properly configured!
+
+### 4. Firestore Security Rules (Optional but Recommended)
+
+For production, update your Firestore security rules:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Posts are readable by everyone
+    match /posts/{postId} {
+      allow read: if true;
+      // Only authenticated users can write
+      allow write: if request.auth != null;
+    }
+  }
+}
 ```
+
+### 5. Run the Development Server
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:5173` (or the port shown in the terminal).
+
+## Usage
+
+1. **View Posts**: Visit the home page to see all recent posts in reverse chronological order
+2. **Login**: Click "Login" to sign in with Google OAuth2
+3. **Create Post**: After logging in, click "Create Post" to add a new blog post
+   - Enter a title
+   - Enter HTML content (you can use tags like `<p>`, `<strong>`, `<em>`, `<br>`, etc.)
+   - Click "Publish Post"
+
+## Project Structure
+
+```
+src/
+├── components/       # Reusable components
+│   └── PostCard.tsx  # Component for displaying a single post
+├── firebase/         # Firebase configuration
+│   └── config.ts     # Firebase initialization
+├── pages/            # Page components
+│   ├── Home.tsx      # Main page showing all posts
+│   ├── Login.tsx     # Authentication page
+│   └── CreatePost.tsx # Post creation page
+├── types/            # TypeScript type definitions
+│   └── index.ts      # Post and User interfaces
+├── App.tsx           # Main app component with routing
+└── main.tsx          # Entry point
+```
+
+## Technologies Used
+
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **Firebase Auth** - OAuth2 authentication
+- **Firebase Firestore** - Database for posts
+- **React Router** - Client-side routing
+
+## Build for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory.
+
+## License
+
+MIT
